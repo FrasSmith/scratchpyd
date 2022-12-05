@@ -1,0 +1,41 @@
+#!/bin/python
+
+import sys
+import subprocess
+import os
+import getopt
+
+debug = True
+
+terminal = 'alacritty'
+app = 'ranger'
+columns = '100'
+lines = '20'
+
+myopts, args = getopt.getopt(sys.argv[1:], "ha:c:l:", ["help", "app", "columns", "lines"])
+for opt, arg in myopts:
+    if opt in ('-h', '--help'):
+        print("scrappydo -a <appname> -c <width in columns> -l <lines>")
+        quit()
+    if opt in ('-a', '--app'):
+        app = arg
+    if opt in ('-c', '--columns'):
+        columns = arg
+    if opt in ('-l', '--lines'):
+        lines = arg
+
+classname = 'scrappy_'+app
+
+winclass = subprocess.run(["xdotool", "search", "--classname", classname], capture_output=True, text=True)
+
+if winclass.stdout == "":
+    parmstring = terminal + ' -o "window.dimensions.columns=' + columns + '" "window.dimensions.lines=' + lines + '" --class=' + classname + ' -e ' + app + ' &'
+    os.system(parmstring)
+else:
+    if os.path.exists("/tmp/"+classname) == False:
+        os.system("touch /tmp/"+classname)
+        subprocess.run(["xdotool", "windowminimize", winclass.stdout], capture_output=True, text=True)
+    else:
+        os.system("rm /tmp/"+classname)
+        subprocess.run(["xdotool", "windowactivate", winclass.stdout], capture_output=True, text=True)
+
