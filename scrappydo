@@ -5,8 +5,6 @@ import subprocess
 import os
 import getopt
 
-debug = True
-
 terminal = 'alacritty'
 app = 'ranger'
 columns = '100'
@@ -29,13 +27,16 @@ classname = 'scrappy_'+app
 winclass = subprocess.run(["xdotool", "search", "--classname", classname], capture_output=True, text=True)
 
 if winclass.stdout == "":
-    parmstring = terminal + ' -o "window.dimensions.columns=' + columns + '" "window.dimensions.lines=' + lines + '" --class=' + classname + ' -e ' + app + ' &'
-    os.system(parmstring)
+    # Our app isn't running so we need to launch it in Alacritty
+    runcommand = terminal + ' -o "window.dimensions.columns=' + columns + '" "window.dimensions.lines=' + lines + '" --class=' + classname + ' -e ' + app + ' &'
+    os.system(runcommand)
 else:
     if os.path.exists("/tmp/"+classname) == False:
+        # Our app is already running so we minimize it and create a temp file to indicate it's running but minimized
         os.system("touch /tmp/"+classname)
         subprocess.run(["xdotool", "windowminimize", winclass.stdout], capture_output=True, text=True)
     else:
+        # Our app is running but minimized so we'll delete the temp file and activate the app again
         os.system("rm /tmp/"+classname)
         subprocess.run(["xdotool", "windowactivate", winclass.stdout], capture_output=True, text=True)
 
